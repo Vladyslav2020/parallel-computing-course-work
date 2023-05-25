@@ -1,12 +1,12 @@
 package org.kpi.coursework.massservicenetwork;
 
-public class Association {
+public class Connection {
     protected MassServiceSystem entrySystem;
     protected MassServiceSystem exitSystem;
     private final double probability;
     private int numberRejectedDemands;
 
-    public Association(MassServiceSystem entrySystem, MassServiceSystem exitSystem, double probability) {
+    public Connection(MassServiceSystem entrySystem, MassServiceSystem exitSystem, double probability) {
         this.entrySystem = entrySystem;
         this.exitSystem = exitSystem;
         this.probability = probability;

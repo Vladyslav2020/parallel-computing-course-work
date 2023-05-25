@@ -1,6 +1,6 @@
 package org.kpi.coursework.massservicenetwork.parallel;
 
-import org.kpi.coursework.massservicenetwork.Association;
+import org.kpi.coursework.massservicenetwork.Connection;
 import org.kpi.coursework.massservicenetwork.MassServiceSystem;
 
 import java.util.List;
@@ -15,7 +15,7 @@ public class ParallelMassServiceSystem extends MassServiceSystem implements Runn
     private final double simulationTime;
     private final Lock lock = new ReentrantLock();
     private final Condition queueIsNotEmpty = lock.newCondition();
-    private List<ParallelAssociation> parallelAssociations;
+    private List<ParallelConnection> parallelConnections;
     private ParallelMassServiceExit parallelMassServiceExit;
     private double averageQueueSize;
     private double averageChannelLoad;
@@ -32,7 +32,6 @@ public class ParallelMassServiceSystem extends MassServiceSystem implements Runn
     public void run() {
         double currentTime = 0;
         while (currentTime < simulationTime) {
-            Event event;
             lock.lock();
             try {
                 while (!eventCame()) {
@@ -43,12 +42,12 @@ public class ParallelMassServiceSystem extends MassServiceSystem implements Runn
             } finally {
                 lock.unlock();
             }
-            event = getMinEvent();
+            Event event = getMinEvent();
             calculateStatisticMetrics(currentTime, event);
             currentTime = event.getTime();
             if (event.getEventType() == EventType.FINISH_WORK) {
-                if (parallelAssociations != null) {
-                    parallelAssociations.forEach(parallelAssociation -> ((ParallelMassServiceSystem) parallelAssociation.getExitSystem()).addEvent(event));
+                if (parallelConnections != null) {
+                    parallelConnections.forEach(parallelConnection -> ((ParallelMassServiceSystem) parallelConnection.getExitSystem()).addEvent(event));
                 }
                 break;
             } else if (event.getEventType() == EventType.TAKE_DEMAND) {
@@ -113,13 +112,13 @@ public class ParallelMassServiceSystem extends MassServiceSystem implements Runn
     }
 
     private void promoteDemand(double time) {
-        if (parallelAssociations != null) {
+        if (parallelConnections != null) {
             double probability = Math.random();
             double sum = 0;
-            for (Association association : parallelAssociations) {
-                sum += association.getProbability();
+            for (Connection connection : parallelConnections) {
+                sum += connection.getProbability();
                 if (probability <= sum) {
-                    association.promoteDemand(time);
+                    connection.promoteDemand(time);
                     return;
                 }
             }
@@ -143,8 +142,8 @@ public class ParallelMassServiceSystem extends MassServiceSystem implements Runn
         this.parallelMassServiceExit = parallelMassServiceExit;
     }
 
-    public void setParallelAssociations(List<ParallelAssociation> parallelAssociations) {
-        this.parallelAssociations = parallelAssociations;
+    public void setParallelConnections(List<ParallelConnection> parallelConnections) {
+        this.parallelConnections = parallelConnections;
     }
 
     public long getNumberRejectedDemands() {

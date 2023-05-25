@@ -1,6 +1,6 @@
 package org.kpi.coursework.massservicenetwork.parallel;
 
-import org.kpi.coursework.massservicenetwork.Association;
+import org.kpi.coursework.massservicenetwork.Connection;
 import org.kpi.coursework.massservicenetwork.MassServiceExit;
 import org.kpi.coursework.massservicenetwork.MassServiceNetwork;
 import org.kpi.coursework.massservicenetwork.MassServiceSystem;
@@ -14,21 +14,21 @@ import java.util.stream.Collectors;
 
 public class ParallelMassServiceNetwork extends MassServiceNetwork {
 
-    public ParallelMassServiceNetwork(ParallelDemandInputFlow demandInputFlow, ParallelMassSystemEntry massServiceEntry, List<ParallelMassServiceSystem> massServiceSystems, MassServiceExit massServiceExit, List<Association> associations) {
-        super(demandInputFlow, massServiceEntry, massServiceSystems.stream().map(parallelMassServiceSystem -> (MassServiceSystem) parallelMassServiceSystem).collect(Collectors.toList()), massServiceExit, associations);
+    public ParallelMassServiceNetwork(ParallelDemandInputFlow demandInputFlow, ParallelMassSystemEntry massServiceEntry, List<ParallelMassServiceSystem> massServiceSystems, MassServiceExit massServiceExit, List<Connection> connections) {
+        super(demandInputFlow, massServiceEntry, massServiceSystems.stream().map(parallelMassServiceSystem -> (MassServiceSystem) parallelMassServiceSystem).collect(Collectors.toList()), massServiceExit, connections);
     }
 
     public void run(double simulationTime) {
-        ExecutorService pool = Executors.newFixedThreadPool(4);
+        ExecutorService pool = Executors.newFixedThreadPool(6);
 
         long startTime = System.currentTimeMillis();
         List<Future<?>> futures = new ArrayList<>();
         futures.add(pool.submit((ParallelDemandInputFlow) demandInputFlow));
         massServiceSystems.stream().map(massServiceSystem -> (ParallelMassServiceSystem) massServiceSystem).forEach(massServiceSystem -> {
-            List<ParallelAssociation> filteredAssociations = associations.stream().map(association -> (ParallelAssociation) association)
-                    .filter(association -> association.getEntrySystem() == massServiceSystem).toList();
-            if (filteredAssociations.size() > 0) {
-                massServiceSystem.setParallelAssociations(filteredAssociations);
+            List<ParallelConnection> filteredConnections = connections.stream().map(connection -> (ParallelConnection) connection)
+                    .filter(connection -> connection.getEntrySystem() == massServiceSystem).toList();
+            if (filteredConnections.size() > 0) {
+                massServiceSystem.setParallelConnections(filteredConnections);
             } else {
                 massServiceSystem.setParallelMassServiceExit((ParallelMassServiceExit) massServiceExit);
             }

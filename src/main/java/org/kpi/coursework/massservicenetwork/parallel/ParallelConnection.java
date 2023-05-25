@@ -1,10 +1,10 @@
 package org.kpi.coursework.massservicenetwork.parallel;
 
-import org.kpi.coursework.massservicenetwork.Association;
+import org.kpi.coursework.massservicenetwork.Connection;
 import org.kpi.coursework.massservicenetwork.MassServiceSystem;
 
-public class ParallelAssociation extends Association {
-    public ParallelAssociation(MassServiceSystem entrySystem, MassServiceSystem exitSystem, double probability) {
+public class ParallelConnection extends Connection {
+    public ParallelConnection(MassServiceSystem entrySystem, MassServiceSystem exitSystem, double probability) {
         super(entrySystem, exitSystem, probability);
     }
 

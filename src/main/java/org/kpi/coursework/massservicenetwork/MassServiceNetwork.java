@@ -9,17 +9,17 @@ public class MassServiceNetwork {
     protected MassServiceEntry massServiceEntry;
     protected List<MassServiceSystem> massServiceSystems;
     protected MassServiceExit massServiceExit;
-    protected List<Association> associations;
+    protected List<Connection> connections;
     private final List<Double> averageQueueSizes;
     private final List<Double> averageChannelLoads;
     private double currentTime;
 
-    public MassServiceNetwork(DemandInputFlow demandInputFlow, MassServiceEntry massServiceEntry, List<MassServiceSystem> massServiceSystems, MassServiceExit massServiceExit, List<Association> associations) {
+    public MassServiceNetwork(DemandInputFlow demandInputFlow, MassServiceEntry massServiceEntry, List<MassServiceSystem> massServiceSystems, MassServiceExit massServiceExit, List<Connection> connections) {
         this.demandInputFlow = demandInputFlow;
         this.massServiceEntry = massServiceEntry;
         this.massServiceSystems = massServiceSystems;
         this.massServiceExit = massServiceExit;
-        this.associations = associations;
+        this.connections = connections;
         this.averageQueueSizes = new ArrayList<>();
         this.averageChannelLoads = new ArrayList<>();
         for (int i = 0; i < massServiceSystems.size(); i++) {
@@ -46,20 +46,20 @@ public class MassServiceNetwork {
             if (minTime == nextDemandTime) {
                 demandInputFlow.createDemand(minTime);
             } else {
-                boolean foundInAssociation = false;
+                boolean foundInConnection = false;
                 MassServiceSystem currentMassServiceSystem = massServiceSystems.get(minServiceIndex);
                 double probability = Math.random();
                 double sum = 0;
-                for (Association association : associations.stream()
-                        .filter(association -> association.getEntrySystem() == currentMassServiceSystem).toList()) {
-                    sum += association.getProbability();
+                for (Connection connection : connections.stream()
+                        .filter(connection -> connection.getEntrySystem() == currentMassServiceSystem).toList()) {
+                    sum += connection.getProbability();
                     if (probability <= sum) {
-                        association.promoteDemand(minTime);
-                        foundInAssociation = true;
+                        connection.promoteDemand(minTime);
+                        foundInConnection = true;
                         break;
                     }
                 }
-                if (!foundInAssociation) {
+                if (!foundInConnection) {
                     if (massServiceExit.getMassServiceSystems().contains(currentMassServiceSystem)) {
                         massServiceExit.finishService(currentMassServiceSystem, minTime);
                     }
@@ -81,8 +81,8 @@ public class MassServiceNetwork {
 
     private void printStatistics(double simulationTime) {
         int numberRejectedDemands = massServiceEntry.getNumberRejectedDemands();
-        for (Association association : associations) {
-            numberRejectedDemands += association.getNumberRejectedDemands();
+        for (Connection connection : connections) {
+            numberRejectedDemands += connection.getNumberRejectedDemands();
         }
         System.out.println("Simulation time: " + simulationTime);
         System.out.println("Time: " + Math.round(currentTime));
@@ -98,7 +98,7 @@ public class MassServiceNetwork {
     }
 
     private long getNumberOfRejectedDemands(MassServiceSystem massServiceSystem) {
-        Optional<Association> optionalAssociation = associations.stream().filter(association -> association.getExitSystem() == massServiceSystem).findFirst();
-        return optionalAssociation.map(Association::getNumberRejectedDemands).orElseGet(() -> massServiceEntry.getNumberRejectedDemands());
+        Optional<Connection> optionalConnection = connections.stream().filter(association -> association.getExitSystem() == massServiceSystem).findFirst();
+        return optionalConnection.map(Connection::getNumberRejectedDemands).orElseGet(() -> massServiceEntry.getNumberRejectedDemands());
     }
 }
